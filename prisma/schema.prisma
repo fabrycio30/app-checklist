@@ -1,0 +1,80 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  COLABORADOR
+}
+
+enum QuestionType {
+  TEXT
+  DROPDOWN
+  OK_NA_NC
+  PHOTO
+}
+
+enum InspectionStatus {
+  PENDING
+  COMPLETED
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  role      Role     @default(COLABORADOR)
+  createdAt DateTime @default(now())
+  
+  inspections Inspection[]
+}
+
+model Equipment {
+  id        String   @id @default(uuid())
+  plate     String   @unique
+  model     String
+  brand     String
+  createdAt DateTime @default(now())
+
+  inspections Inspection[]
+}
+
+model ChecklistTemplate {
+  id          String     @id @default(uuid())
+  name        String
+  description String?
+  createdAt   DateTime   @default(now())
+  
+  questions   Question[]
+  inspections Inspection[]
+}
+
+model Question {
+  id         String       @id @default(uuid())
+  templateId String
+  text       String
+  type       QuestionType
+  options    String[]     // Para Dropdown, armazenar opções como array de strings
+  order      Int
+  
+  template   ChecklistTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+}
+
+model Inspection {
+  id          String           @id @default(uuid())
+  equipmentId String
+  userId      String
+  templateId  String
+  status      InspectionStatus @default(PENDING)
+  answers     Json             // Armazena as respostas: { questionId: { value: "...", photos: ["..."] } }
+  createdAt   DateTime         @default(now())
+  syncedAt    DateTime?        // Data de sincronização com o servidor
+
+  equipment   Equipment         @relation(fields: [equipmentId], references: [id])
+  user        User              @relation(fields: [userId], references: [id])
+  template    ChecklistTemplate @relation(fields: [templateId], references: [id])
+}
