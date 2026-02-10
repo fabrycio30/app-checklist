@@ -1,8 +1,4 @@
 import prisma from '@/lib/prisma'
-import { createEquipment } from '@/app/admin/actions'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import {
   Table,
   TableBody,
@@ -11,13 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
+import { EquipmentDialog } from '@/components/admin/equipment-dialog'
 
 export default async function EquipmentsPage() {
   const equipments = await prisma.equipment.findMany({
@@ -27,35 +17,11 @@ export default async function EquipmentsPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Gerenciar Equipamentos</h1>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button>Novo Equipamento</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Adicionar Equipamento</DialogTitle>
-            </DialogHeader>
-            <form action={createEquipment} className="space-y-4">
-              <div className="space-y-2">
-                <Label>Placa</Label>
-                <Input name="plate" required placeholder="ABC-1234" />
-              </div>
-              <div className="space-y-2">
-                <Label>Modelo</Label>
-                <Input name="model" required placeholder="Caminhão Toco" />
-              </div>
-              <div className="space-y-2">
-                <Label>Marca</Label>
-                <Input name="brand" required placeholder="Mercedes" />
-              </div>
-              <Button type="submit" className="w-full">Salvar</Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <h1 className="text-2xl font-bold text-slate-900">Gerenciar Equipamentos</h1>
+        <EquipmentDialog />
       </div>
 
-      <div className="border rounded-md">
+      <div className="border rounded-md shadow-sm bg-white">
         <Table>
           <TableHeader>
             <TableRow>
@@ -66,14 +32,22 @@ export default async function EquipmentsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {equipments.map((eq) => (
-              <TableRow key={eq.id}>
-                <TableCell className="font-medium">{eq.plate}</TableCell>
-                <TableCell>{eq.model}</TableCell>
-                <TableCell>{eq.brand}</TableCell>
-                <TableCell>{new Date(eq.createdAt).toLocaleDateString()}</TableCell>
+            {equipments.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                  Nenhum equipamento cadastrado.
+                </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              equipments.map((eq) => (
+                <TableRow key={eq.id}>
+                  <TableCell className="font-medium">{eq.plate}</TableCell>
+                  <TableCell>{eq.model}</TableCell>
+                  <TableCell>{eq.brand}</TableCell>
+                  <TableCell>{new Date(eq.createdAt).toLocaleDateString()}</TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>

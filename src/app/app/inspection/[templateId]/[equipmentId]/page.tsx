@@ -66,9 +66,17 @@ export default function InspectionPage() {
       const ans = answers[q.id]
       
       // Validação básica: tem resposta?
-      if (!ans || !ans.value) {
-        toast.error(`A pergunta "${q.text}" é obrigatória.`)
-        return false
+      // Se for PHOTO, a validação de 'value' não se aplica, checa fotos
+      if (q.type === 'PHOTO') {
+        if (!ans || !ans.photos || ans.photos.length === 0) {
+          toast.error(`A pergunta "${q.text}" requer foto obrigatória.`)
+          return false
+        }
+      } else {
+        if (!ans || !ans.value) {
+          toast.error(`A pergunta "${q.text}" é obrigatória.`)
+          return false
+        }
       }
 
       // Validação NC
@@ -126,8 +134,15 @@ export default function InspectionPage() {
         ))}
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t shadow-lg">
-        <Button size="lg" className="w-full" onClick={handleFinish}>
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t shadow-lg z-20">
+        <Button 
+          size="lg" 
+          className="w-full h-12 text-lg font-medium shadow-md bg-blue-600 hover:bg-blue-700 text-white" 
+          onClick={(e) => {
+            console.log('Botão clicado!')
+            handleFinish()
+          }}
+        >
           Finalizar Inspeção
         </Button>
       </div>

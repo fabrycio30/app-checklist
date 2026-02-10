@@ -7,6 +7,56 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id          String       @id @default(uuid())
+  email       String       @unique
+  role        Role         @default(COLABORADOR)
+  createdAt   DateTime     @default(now())
+  inspections Inspection[]
+}
+
+model Equipment {
+  id          String       @id @default(uuid())
+  plate       String       @unique
+  model       String
+  brand       String
+  createdAt   DateTime     @default(now())
+  inspections Inspection[]
+}
+
+model ChecklistTemplate {
+  id          String       @id @default(uuid())
+  name        String
+  description String?
+  createdAt   DateTime     @default(now())
+  inspections Inspection[]
+  questions   Question[]
+}
+
+model Question {
+  id         String            @id @default(uuid())
+  templateId String
+  text       String
+  type       QuestionType
+  options    String[]
+  order      Int
+  template   ChecklistTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+}
+
+model Inspection {
+  id          String            @id @default(uuid())
+  equipmentId String
+  userId      String
+  templateId  String
+  status      InspectionStatus  @default(PENDING)
+  answers     Json
+  createdAt   DateTime          @default(now())
+  syncedAt    DateTime?
+  equipment   Equipment         @relation(fields: [equipmentId], references: [id])
+  template    ChecklistTemplate @relation(fields: [templateId], references: [id])
+  user        User              @relation(fields: [userId], references: [id])
+}
+
 enum Role {
   ADMIN
   COLABORADOR
@@ -22,59 +72,4 @@ enum QuestionType {
 enum InspectionStatus {
   PENDING
   COMPLETED
-}
-
-model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  role      Role     @default(COLABORADOR)
-  createdAt DateTime @default(now())
-  
-  inspections Inspection[]
-}
-
-model Equipment {
-  id        String   @id @default(uuid())
-  plate     String   @unique
-  model     String
-  brand     String
-  createdAt DateTime @default(now())
-
-  inspections Inspection[]
-}
-
-model ChecklistTemplate {
-  id          String     @id @default(uuid())
-  name        String
-  description String?
-  createdAt   DateTime   @default(now())
-  
-  questions   Question[]
-  inspections Inspection[]
-}
-
-model Question {
-  id         String       @id @default(uuid())
-  templateId String
-  text       String
-  type       QuestionType
-  options    String[]     // Para Dropdown, armazenar opções como array de strings
-  order      Int
-  
-  template   ChecklistTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
-}
-
-model Inspection {
-  id          String           @id @default(uuid())
-  equipmentId String
-  userId      String
-  templateId  String
-  status      InspectionStatus @default(PENDING)
-  answers     Json             // Armazena as respostas: { questionId: { value: "...", photos: ["..."] } }
-  createdAt   DateTime         @default(now())
-  syncedAt    DateTime?        // Data de sincronização com o servidor
-
-  equipment   Equipment         @relation(fields: [equipmentId], references: [id])
-  user        User              @relation(fields: [userId], references: [id])
-  template    ChecklistTemplate @relation(fields: [templateId], references: [id])
 }

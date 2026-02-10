@@ -94,10 +94,41 @@ export function QuestionCard({ question, answer, onChange }: QuestionCardProps) 
           </div>
         )
       case 'PHOTO':
+        const hasPhotos = localAnswer.photos && localAnswer.photos.length > 0
         return (
           <div>
-            <Label>Foto Obrigatória</Label>
-            <Input type="file" accept="image/*" capture="environment" onChange={handleFileChange} />
+            <Label className="block mb-2">Foto Obrigatória</Label>
+            
+            {hasPhotos && (
+              <div className="flex flex-wrap gap-2 mb-3">
+                {localAnswer.photos?.map((p, i) => (
+                  <div key={i} className="relative w-20 h-20 bg-gray-100 rounded-md overflow-hidden border border-gray-200">
+                    {/* Se p for string (url) exibe, se for Blob cria url temporaria */}
+                    {typeof p === 'string' ? (
+                        <img src={p} alt={`Foto ${i+1}`} className="w-full h-full object-cover" />
+                    ) : (
+                        <img src={URL.createObjectURL(p)} alt={`Foto ${i+1}`} className="w-full h-full object-cover" />
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <Button variant="outline" className="w-full h-12 border-dashed border-2" onClick={() => document.getElementById(`file-${question.id}`)?.click()}>
+              <Camera className="mr-2 h-4 w-4" /> 
+              {hasPhotos ? 'Adicionar Mais Fotos' : 'Tirar Foto'}
+            </Button>
+            <Input 
+              id={`file-${question.id}`}
+              type="file" 
+              accept="image/*" 
+              capture="environment" 
+              className="hidden"
+              onChange={handleFileChange} 
+            />
+            {!hasPhotos && (
+               <p className="text-xs text-muted-foreground mt-1">Nenhuma foto selecionada.</p>
+            )}
           </div>
         )
       default:
@@ -108,7 +139,7 @@ export function QuestionCard({ question, answer, onChange }: QuestionCardProps) 
   const isNC = localAnswer.value === 'NC'
 
   return (
-    <Card className={`mb-4 ${isNC ? 'border-red-500 border-2' : ''}`}>
+    <Card className={`mb-4 bg-white dark:bg-slate-950 shadow-sm ${isNC ? 'border-red-500 border-2' : ''}`}>
       <CardHeader className="pb-2">
         <CardTitle className="text-lg font-medium">{question.text}</CardTitle>
       </CardHeader>
@@ -134,19 +165,25 @@ export function QuestionCard({ question, answer, onChange }: QuestionCardProps) 
 
             <div className="space-y-2">
               <Label>Fotos (Obrigatório)</Label>
-              <div className="flex flex-wrap gap-2 mb-2">
-                {localAnswer.photos?.map((p, i) => (
-                  <div key={i} className="relative w-20 h-20 bg-gray-100 rounded overflow-hidden">
-                    {/* Preview simplificado */}
-                    <div className="flex items-center justify-center h-full text-xs text-gray-500">Foto {i+1}</div>
-                  </div>
-                ))}
-              </div>
-              <Button variant="outline" className="w-full" onClick={() => document.getElementById(`file-${question.id}`)?.click()}>
-                <Camera className="mr-2 h-4 w-4" /> Adicionar Foto
+              {localAnswer.photos && localAnswer.photos.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {localAnswer.photos.map((p, i) => (
+                    <div key={i} className="relative w-20 h-20 bg-gray-100 rounded-md overflow-hidden border border-gray-200">
+                      {typeof p === 'string' ? (
+                          <img src={p} alt={`Foto ${i+1}`} className="w-full h-full object-cover" />
+                      ) : (
+                          <img src={URL.createObjectURL(p)} alt={`Foto ${i+1}`} className="w-full h-full object-cover" />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+              <Button variant="outline" className="w-full h-12 border-dashed border-2" onClick={() => document.getElementById(`file-nc-${question.id}`)?.click()}>
+                <Camera className="mr-2 h-4 w-4" /> 
+                {localAnswer.photos && localAnswer.photos.length > 0 ? 'Adicionar Mais Fotos' : 'Adicionar Foto'}
               </Button>
               <Input 
-                id={`file-${question.id}`}
+                id={`file-nc-${question.id}`}
                 type="file" 
                 accept="image/*" 
                 capture="environment" 
